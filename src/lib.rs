@@ -12,6 +12,7 @@ pub mod solutions {
         pub mod day10;
         pub mod day11;
         pub mod day12;
+        pub mod day13;
     }
 }
 
@@ -47,6 +48,8 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (11, 2) => y2024::day11::count_stones_after_blinks(input, 75),
             (12, 1) => y2024::day12::calculate_total_fence_price(input),
             (12, 2) => y2024::day12::calculate_total_fence_price_with_sides(input),
+            (13, 1) => y2024::day13::solve_claw_contraption_part1(input),
+            (13, 2) => y2024::day13::solve_claw_contraption_part2(input),
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),
