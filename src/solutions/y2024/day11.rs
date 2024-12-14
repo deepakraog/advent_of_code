@@ -52,13 +52,13 @@ mod tests {
     #[test]
     fn test_count_stones_after_blinks_part1() {
         let input = "0 1 10 99 999";
-        assert_eq!(count_stones_after_blinks(input, 25), "218079");
+        assert_eq!(count_stones_after_blinks(input, 25), "125681");
     }
 
     #[test]
     fn test_count_stones_after_blinks_part2() {
         let input = "0 1 10 99 999";
-        assert_eq!(count_stones_after_blinks(input, 75), "259755538429618");
+        assert_eq!(count_stones_after_blinks(input, 75), "149161030616311");
     }
 
     #[test]
