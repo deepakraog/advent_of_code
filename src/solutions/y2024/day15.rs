@@ -23,15 +23,14 @@ fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<char>) {
 fn solve(input: &str, part2: bool) -> String {
     let (mut grid, instructions) = parse_input(input);
 
-    let rows = grid.len();
     let cols = grid[0].len();
 
     // Expand grid for part 2
     if part2 {
-        let mut big_grid = vec![vec!['.'; cols * 2]; rows];
-        for r in 0..rows {
-            for c in 0..cols {
-                match grid[r][c] {
+        let mut big_grid = vec![vec!['.'; cols * 2]; grid.len()];
+        for (r, row) in grid.iter().enumerate() {
+            for (c, &cell) in row.iter().enumerate() {
+                match cell {
                     '#' => {
                         big_grid[r][c * 2] = '#';
                         big_grid[r][c * 2 + 1] = '#';
@@ -56,20 +55,18 @@ fn solve(input: &str, part2: bool) -> String {
     }
 
     let mut robot_pos = (0, 0);
-    let rows = grid.len();
-    let cols = grid[0].len();
 
     // Find the initial robot position
-    for r in 0..rows {
-        for c in 0..cols {
-            if grid[r][c] == '@' {
+    for (r, row) in grid.iter_mut().enumerate() {
+        for (c, cell) in row.iter_mut().enumerate() {
+            if *cell == '@' {
                 robot_pos = (r, c);
-                grid[r][c] = '.';
+                *cell = '.';
             }
         }
     }
 
-    let directions = vec![('^', (-1, 0)), ('v', (1, 0)), ('<', (0, -1)), ('>', (0, 1))];
+    let directions = [('^', (-1, 0)), ('v', (1, 0)), ('<', (0, -1)), ('>', (0, 1))];
     let mut r = robot_pos.0;
     let mut c = robot_pos.1;
 
@@ -150,9 +147,9 @@ fn solve(input: &str, part2: bool) -> String {
 
     // Calculate GPS coordinate sum
     let mut gps_sum = 0;
-    for r in 0..rows {
-        for c in 0..cols {
-            if grid[r][c] == '[' || grid[r][c] == 'O' {
+    for (r, row) in grid.iter().enumerate() {
+        for (c, &cell) in row.iter().enumerate() {
+            if cell == '[' || cell == 'O' {
                 gps_sum += 100 * r + c;
             }
         }
@@ -186,7 +183,6 @@ mod tests {
 <^^>>>vv<v>>v<<";
 
         assert_eq!(solve_part1(input), "2028");
-        // Replace <expected_result_part2> with the correct value for part 2
-        assert_eq!(solve_part2(input), "<expected_result_part2>");
+        assert_eq!(solve_part2(input), "1751");
     }
 }

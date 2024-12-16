@@ -1,13 +1,15 @@
 use std::collections::{HashMap, HashSet};
 
-pub fn parse_input(
-    input: &str,
-) -> (
+// Type alias for the return type of `parse_input`
+type ParsedInput = (
     Vec<Vec<char>>,
     usize,
     usize,
     HashMap<char, Vec<(usize, usize)>>,
-) {
+);
+
+/// Parses the input and extracts the grid, dimensions, and node positions.
+pub fn parse_input(input: &str) -> ParsedInput {
     let grid: Vec<Vec<char>> = input
         .lines()
         .filter(|line| !line.trim().is_empty())
@@ -29,6 +31,7 @@ pub fn parse_input(
     (grid, n, m, nodes)
 }
 
+/// Calculates the number of antinodes based on the input.
 pub fn calculate_antinodes(input: &str) -> String {
     let (_, n, m, nodes) = parse_input(input);
     let mut antinodes = HashSet::new();
@@ -60,6 +63,7 @@ pub fn calculate_antinodes(input: &str) -> String {
     antinodes.len().to_string()
 }
 
+/// Calculates the number of antinodes using harmonics based on the input.
 pub fn calculate_with_harmonics(input: &str) -> String {
     let (_, n, m, nodes) = parse_input(input);
     let mut antinodes = HashSet::new();

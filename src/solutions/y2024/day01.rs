@@ -62,12 +62,12 @@ mod tests {
     #[test]
     fn test_total_distance() {
         let input = "1 3\n2 4\n5 8";
-        assert_eq!(calculate_total_distance(&input), "7");
+        assert_eq!(calculate_total_distance(input), "7");
     }
 
     #[test]
     fn test_similarity_score() {
         let input = "1 1\n2 2\n3 3";
-        assert_eq!(calculate_similarity_score(&input), "6");
+        assert_eq!(calculate_similarity_score(input), "6");
     }
 }

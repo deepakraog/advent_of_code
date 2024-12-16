@@ -24,8 +24,8 @@ pub fn calculate_total_fence_price(input: &str) -> String {
 }
 
 fn bfs_region(
-    grid: &Vec<Vec<char>>,
-    visited: &mut Vec<Vec<bool>>,
+    grid: &[Vec<char>],
+    visited: &mut [Vec<bool>],
     start: (usize, usize),
     plant_type: char,
     directions: &[(isize, isize)],
