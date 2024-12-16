@@ -5,7 +5,6 @@ pub fn sum_valid_equations(input: &str) -> String {
         let parts: Vec<&str> = line.split(':').collect();
         let target = parts[0].trim().parse::<i64>().unwrap();
         let ns: Vec<i64> = parts[1]
-            .trim()
             .split_whitespace()
             .map(|x| x.parse::<i64>().unwrap())
             .collect();
@@ -25,7 +24,6 @@ pub fn sum_valid_equations_with_concat(input: &str) -> String {
         let parts: Vec<&str> = line.split(':').collect();
         let target = parts[0].trim().parse::<i64>().unwrap();
         let ns: Vec<i64> = parts[1]
-            .trim()
             .split_whitespace()
             .map(|x| x.parse::<i64>().unwrap())
             .collect();

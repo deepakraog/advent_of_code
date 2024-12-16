@@ -1,8 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
-pub fn parse_topographic_map(
-    input: &str,
-) -> (Vec<Vec<u32>>, usize, usize, Vec<Vec<(usize, usize)>>) {
+// Type alias for the return type of `parse_topographic_map`
+type ParsedTopography = (Vec<Vec<u32>>, usize, usize, Vec<Vec<(usize, usize)>>);
+
+/// Parses the input and extracts the grid, dimensions, and node locations by height.
+pub fn parse_topographic_map(input: &str) -> ParsedTopography {
     let grid: Vec<Vec<u32>> = input
         .lines()
         .filter(|line| !line.trim().is_empty())
@@ -22,6 +24,7 @@ pub fn parse_topographic_map(
     (grid, n, m, loc_by_height)
 }
 
+/// Calculates the sum of trailhead scores.
 pub fn sum_trailhead_scores(input: &str) -> String {
     let (grid, n, m, loc_by_height) = parse_topographic_map(input);
     let mut reachable_locs: HashMap<(usize, usize), HashSet<(usize, usize)>> = HashMap::new();
@@ -64,6 +67,7 @@ pub fn sum_trailhead_scores(input: &str) -> String {
     total_score.to_string()
 }
 
+/// Calculates the sum of trailhead ratings.
 pub fn sum_trailhead_ratings(input: &str) -> String {
     let (grid, n, m, loc_by_height) = parse_topographic_map(input);
     let mut reachable_locs: HashMap<(usize, usize), usize> = HashMap::new();

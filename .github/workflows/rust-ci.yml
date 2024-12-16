@@ -1,0 +1,38 @@
+name: Rust CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build, Test, and Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Install dependencies
+        run: |
+          rustup component add clippy rustfmt
+
+      - name: Run Clippy (Lint)
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Check Formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Tests
+        run: cargo test --all-targets --all-features -- --nocapture

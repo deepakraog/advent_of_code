@@ -16,17 +16,21 @@ pub fn count_safe_reports(input: &str) -> String {
                 return false; // Difference must be between 1 and 3
             }
 
-            if diff > 0 {
-                if direction == Some(false) {
-                    return false; // Mixed direction
+            direction = match diff.cmp(&0) {
+                std::cmp::Ordering::Greater => {
+                    if direction == Some(false) {
+                        return false; // Mixed direction
+                    }
+                    Some(true) // Increasing
                 }
-                direction = Some(true); // Increasing
-            } else if diff < 0 {
-                if direction == Some(true) {
-                    return false; // Mixed direction
+                std::cmp::Ordering::Less => {
+                    if direction == Some(true) {
+                        return false; // Mixed direction
+                    }
+                    Some(false) // Decreasing
                 }
-                direction = Some(false); // Decreasing
-            }
+                std::cmp::Ordering::Equal => direction,
+            };
         }
 
         true
@@ -55,17 +59,21 @@ pub fn count_safe_reports_with_dampener(input: &str) -> String {
                 return false; // Difference must be between 1 and 3
             }
 
-            if diff > 0 {
-                if direction == Some(false) {
-                    return false; // Mixed direction
+            direction = match diff.cmp(&0) {
+                std::cmp::Ordering::Greater => {
+                    if direction == Some(false) {
+                        return false; // Mixed direction
+                    }
+                    Some(true) // Increasing
                 }
-                direction = Some(true); // Increasing
-            } else if diff < 0 {
-                if direction == Some(true) {
-                    return false; // Mixed direction
+                std::cmp::Ordering::Less => {
+                    if direction == Some(true) {
+                        return false; // Mixed direction
+                    }
+                    Some(false) // Decreasing
                 }
-                direction = Some(false); // Decreasing
-            }
+                std::cmp::Ordering::Equal => direction,
+            };
         }
 
         true
