@@ -64,25 +64,30 @@ cargo test
 
 ```
 src/
-├── inputs/           # Local storage for puzzle inputs
-│   ├── y2024/        # Inputs for Year 2024
-│   │   ├── day01.txt # Input for Day 1
-│   │   ├── day02.txt # Input for Day 2
-│   │   └── ...
-├── year2024/         # Solutions for Year 2024
-│   ├── day01/        # Solution for Day 1
-│   │   ├── mod.rs    # Entry point for Day 1
-│   │   └── logic.rs  # Core logic for Day 1
-│   ├── day02/        # Solution for Day 2
-│   │   ├── mod.rs
-│   │   └── logic.rs
-│   └── ...
-├── bin/              # Binary entry points
-│   ├── year2024/     # Entry points for Year 2024
-│   │   ├── 1.rs      # Entry for Day 1
-│   │   ├── 2.rs      # Entry for Day 2
-│   │   └── ...
-└── lib.rs            # Main library file
+│
+├── elves.rs             # Utility file for shared logic or helper functions
+│
+├── input/               # Directory for puzzle inputs and descriptions
+│   └── y2024/           # Inputs and descriptions for Year 2024
+│       ├── day01.md     # Puzzle description for Day 1
+│       ├── day01.txt    # Puzzle input for Day 1
+│       ├── day02.md     # Puzzle description for Day 2
+│       ├── day02.txt    # Puzzle input for Day 2
+│       ├── day03.md     # Puzzle description for Day 3
+│       ├── day03.txt    # Puzzle input for Day 3
+│       ├── ......
+│
+├── lib.rs               # Main library file, includes module imports for solutions
+│
+├── main.rs              # Binary entry point for the application
+│
+└── solutions/           # Directory for solutions to puzzles
+    └── y2024/           # Solutions for Year 2024
+        ├── day01.rs     # Solution implementation for Day 1
+        ├── day02.rs     # Solution implementation for Day 2
+        ├── day03.rs     # Solution implementation for Day 3
+        ├── .......
+
 ```
 
 ---
