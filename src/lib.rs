@@ -16,6 +16,7 @@ pub mod solutions {
         pub mod day14;
         pub mod day15;
         pub mod day16;
+        pub mod day17;
     }
 }
 
@@ -59,6 +60,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (15, 2) => y2024::day15::solve_part2(input),
             (16, 1) => y2024::day16::solve_part1(input),
             (16, 2) => y2024::day16::solve_part2(input), // Not Working
+            (17, 1) => y2024::day17::execute_program(input),
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),
