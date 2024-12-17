@@ -15,18 +15,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Update to latest version
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable # Use updated rust-toolchain action
         with:
-          profile: minimal
           toolchain: stable
-          override: true
-
-      - name: Install dependencies
-        run: |
-          rustup component add clippy rustfmt
+          components: clippy, rustfmt
 
       - name: Run Clippy (Lint)
         run: cargo clippy --all-targets --all-features -- -D warnings
