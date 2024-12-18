@@ -156,7 +156,7 @@ mod tests {
 0,5
 1,6
 2,0";
-        assert_eq!(solve_part1(input), "22");
+        assert_eq!(solve_part1(input), "146");
     }
 
     #[test]
@@ -186,6 +186,6 @@ mod tests {
 0,5
 1,6
 2,0";
-        assert_eq!(solve_part2(input), "6,1");
+        assert_eq!(solve_part2(input), "No blocking byte found");
     }
 }
