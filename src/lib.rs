@@ -19,6 +19,7 @@ pub mod solutions {
         pub mod day17;
         pub mod day18;
         pub mod day19;
+        pub mod day20;
     }
 }
 
@@ -55,7 +56,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (12, 1) => y2024::day12::calculate_total_fence_price(input),
             (12, 2) => y2024::day12::calculate_total_fence_price_with_sides(input),
             (13, 1) => y2024::day13::solve_claw_contraption_part1(input),
-            (13, 2) => y2024::day13::solve_claw_contraption_part2(input), // Not Working
+            (13, 2) => y2024::day13::solve_claw_contraption_part2(input),
             (14, 1) => y2024::day14::solve_part1(input),
             (14, 2) => y2024::day14::solve_part2(input), // Not Working
             (15, 1) => y2024::day15::solve_part1(input),
@@ -67,6 +68,8 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (18, 2) => y2024::day18::solve_part2(input),
             (19, 1) => y2024::day19::solve_part1(input),
             (19, 2) => y2024::day19::solve_part2(input),
+            (20, 1) => y2024::day20::solve_part1(input),
+            (20, 2) => y2024::day20::solve_part2(input),
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),
