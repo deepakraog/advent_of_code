@@ -66,7 +66,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (13, 1) => y2024::day13::solve_claw_contraption_part1(input),
             (13, 2) => y2024::day13::solve_claw_contraption_part2(input),
             (14, 1) => y2024::day14::solve_part1(input),
-            (14, 2) => y2024::day14::solve_part2(input), // Not Working
+            (14, 2) => y2024::day14::solve_part2(input),
             (15, 1) => y2024::day15::solve_part1(input),
             (15, 2) => y2024::day15::solve_part2(input),
             (16, 1) => y2024::day16::solve_part1(input),
