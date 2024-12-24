@@ -1,156 +1,124 @@
-use std::collections::{HashMap, HashSet};
+use regex::Regex;
+use std::collections::HashMap;
 
-/// Represents a robot with position and velocity.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct Robot {
-    position: (i32, i32),
-    velocity: (i32, i32),
+    px: i32,
+    py: i32,
+    vx: i32,
+    vy: i32,
 }
 
-/// Parses the input and returns a list of robots.
-fn parse_input(input: &str) -> Vec<Robot> {
-    input
-        .lines()
-        .map(|line| {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            let position: Vec<i32> = parts[0]
-                .trim_start_matches("p=")
-                .split(',')
-                .map(|x| x.parse().unwrap())
-                .collect();
-            let velocity: Vec<i32> = parts[1]
-                .trim_start_matches("v=")
-                .split(',')
-                .map(|x| x.parse().unwrap())
-                .collect();
-
-            Robot {
-                position: (position[0], position[1]),
-                velocity: (velocity[0], velocity[1]),
-            }
-        })
-        .collect()
+struct Puzzle {
+    robots: Vec<Robot>,
+    width: i32,
+    height: i32,
 }
 
-/// Simulates the robot positions after a given amount of time.
-fn simulate_positions(robots: &[Robot], time: i32) -> HashMap<(i32, i32), i32> {
-    let mut positions = HashMap::new();
-
-    for robot in robots {
-        let new_x = (robot.position.0 + robot.velocity.0 * time).rem_euclid(101);
-        let new_y = (robot.position.1 + robot.velocity.1 * time).rem_euclid(103);
-
-        *positions.entry((new_x, new_y)).or_insert(0) += 1;
+impl Puzzle {
+    const fn new() -> Self {
+        Self {
+            robots: Vec::new(),
+            width: 101,
+            height: 103,
+        }
     }
 
-    positions
-}
+    fn configure(&mut self, input: &str) {
+        let re = Regex::new(r"p=(\d+),(\d+) v=(-?\d+),(-?\d+)").unwrap();
 
-/// Divides the space into quadrants and calculates the robot count in each quadrant.
-fn count_robots_in_quadrants(positions: &HashMap<(i32, i32), i32>) -> [i32; 4] {
-    let mut quadrants = [0; 4];
+        for line in input.lines() {
+            let caps = re.captures(line).unwrap();
 
-    for (&(x, y), &count) in positions {
-        if x == 101 / 2 || y == 103 / 2 {
-            continue; // Robots in the middle don't count
+            let robot = Robot {
+                px: caps.get(1).unwrap().as_str().parse().unwrap(),
+                py: caps.get(2).unwrap().as_str().parse().unwrap(),
+                vx: caps.get(3).unwrap().as_str().parse().unwrap(),
+                vy: caps.get(4).unwrap().as_str().parse().unwrap(),
+            };
+
+            self.robots.push(robot);
         }
 
-        let quadrant = if x < 101 / 2 && y < 103 / 2 {
-            0 // Top-left
-        } else if x >= 101 / 2 && y < 103 / 2 {
-            1 // Top-right
-        } else if x < 101 / 2 && y >= 103 / 2 {
-            2 // Bottom-left
-        } else {
-            3 // Bottom-right
-        };
-
-        quadrants[quadrant] += count;
+        if input.contains("test") {
+            self.width = 11;
+            self.height = 7;
+        }
     }
 
-    quadrants
+    fn solve_part1(&self) -> u32 {
+        let mut quadrants = HashMap::new();
+
+        for robot in &self.robots {
+            let px = (robot.px + robot.vx * 100).rem_euclid(self.width);
+            let py = (robot.py + robot.vy * 100).rem_euclid(self.height);
+
+            if px == self.width / 2 || py == self.height / 2 {
+                continue;
+            }
+
+            let q = ((px * 2) / self.width, (py * 2) / self.height);
+            *quadrants.entry(q).or_default() += 1_u32;
+        }
+
+        quadrants.values().product::<u32>()
+    }
+
+    fn solve_part2(&self) -> i32 {
+        'outer: for seconds in 0..100_000 {
+            let mut grid: HashMap<(i32, i32), u32> = HashMap::new();
+
+            for robot in &self.robots {
+                let px = (robot.px + robot.vx * seconds).rem_euclid(self.width);
+                let py = (robot.py + robot.vy * seconds).rem_euclid(self.height);
+
+                if grid.contains_key(&(px, py)) {
+                    continue 'outer;
+                }
+
+                *grid.entry((px, py)).or_default() += 1;
+            }
+
+            return seconds;
+        }
+
+        0
+    }
 }
 
-/// Computes the safety factor by multiplying robot counts in each quadrant.
-fn compute_safety_factor(quadrants: [i32; 4]) -> i32 {
-    quadrants.iter().product()
-}
-
-/// Solves Part 1 of the puzzle.
+/// Solves Part 1: Computes the safety factor of the robots.
 pub fn solve_part1(input: &str) -> String {
-    let robots = parse_input(input);
-    let positions = simulate_positions(&robots, 100);
-    let quadrants = count_robots_in_quadrants(&positions);
-    compute_safety_factor(quadrants).to_string()
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.solve_part1().to_string()
 }
 
-/// Simulates robot positions at a specific time step.
-fn simulate_positions_set(robots: &[Robot], time: i32) -> HashSet<(i32, i32)> {
-    robots
-        .iter()
-        .map(|robot| {
-            let new_x = robot.position.0 + robot.velocity.0 * time;
-            let new_y = robot.position.1 + robot.velocity.1 * time;
-            (new_x, new_y)
-        })
-        .collect()
+/// Solves Part 2: Finds the time at which robots align to form a pattern.
+pub fn solve_part2(input: &str) -> String {
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.solve_part2().to_string()
 }
 
-/// Finds the bounding box of the given positions.
-fn bounding_box(positions: &HashSet<(i32, i32)>) -> ((i32, i32), (i32, i32)) {
-    let min_x = positions.iter().map(|&(x, _)| x).min().unwrap();
-    let max_x = positions.iter().map(|&(x, _)| x).max().unwrap();
-    let min_y = positions.iter().map(|&(_, y)| y).min().unwrap();
-    let max_y = positions.iter().map(|&(_, y)| y).max().unwrap();
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    ((min_x, min_y), (max_x, max_y))
-}
-
-/// Visualizes the positions of robots on a grid.
-fn visualize_positions(positions: &HashSet<(i32, i32)>) -> String {
-    let ((min_x, min_y), (max_x, max_y)) = bounding_box(positions);
-    let mut result = String::new();
-
-    for y in min_y..=max_y {
-        for x in min_x..=max_x {
-            if positions.contains(&(x, y)) {
-                result.push('#');
-            } else {
-                result.push('.');
-            }
-        }
-        result.push('\n');
+    #[test]
+    fn test_part1() {
+        let input = r"p=3,1 v=1,0
+p=2,2 v=1,-1
+p=3,3 v=-1,0
+p=4,4 v=0,1";
+        assert_eq!(solve_part1(input), "4");
     }
 
-    result
-}
-
-/// Solves Part 2: Finds the fewest seconds for robots to display the Easter egg.
-pub fn solve_part2(input: &str) -> String {
-    let robots = parse_input(input);
-
-    let mut time = 0;
-    let mut last_area = i32::MAX;
-    let mut last_positions = HashSet::new();
-
-    loop {
-        let positions = simulate_positions_set(&robots, time);
-        let ((min_x, min_y), (max_x, max_y)) = bounding_box(&positions);
-        let area = (max_x - min_x + 1) * (max_y - min_y + 1);
-
-        if area > last_area {
-            // When the bounding box starts expanding, return the last valid visualization
-            let visualization = visualize_positions(&last_positions);
-            return format!("Time: {}\n{}", time - 1, visualization);
-        }
-
-        last_area = area;
-        last_positions = positions;
-        time += 1;
-
-        // Safety condition to prevent infinite loops
-        if time > 10_000 {
-            return "No clear Easter egg found within 10,000 seconds.".to_string();
-        }
+    #[test]
+    fn test_part2() {
+        let input = r"p=3,1 v=1,0
+p=2,2 v=1,-1
+p=3,3 v=-1,0
+p=4,4 v=0,1";
+        assert_eq!(solve_part2(input), "0");
     }
 }

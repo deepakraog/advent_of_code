@@ -47,7 +47,6 @@ fn count_triangles_with_t(network: &HashMap<String, HashSet<String>>) -> usize {
     count
 }
 
-/// Finds the largest clique in the network using a randomized approach.
 /// Finds the largest clique in the network deterministically.
 fn find_largest_clique(network: &HashMap<String, HashSet<String>>) -> Vec<String> {
     let mut nodes: Vec<&String> = network.keys().collect();
