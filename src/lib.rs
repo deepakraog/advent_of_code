@@ -23,6 +23,7 @@ pub mod solutions {
         pub mod day21;
         pub mod day22;
         pub mod day23;
+        pub mod day24;
     }
 }
 
@@ -79,6 +80,8 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (22, 2) => y2024::day22::solve_part2(input), // Not Working
             (23, 1) => y2024::day23::solve_part1(input),
             (23, 2) => y2024::day23::solve_part2(input),
+            (24, 1) => y2024::day24::solve_part1(input),
+            (24, 2) => y2024::day24::solve_part2(input),
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),
