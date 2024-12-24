@@ -76,16 +76,16 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (18, 2) => y2024::day18::solve_part2(input),
             (19, 1) => y2024::day19::solve_part1(input),
             (19, 2) => y2024::day19::solve_part2(input),
-            (20, 1) => y2024::day20::solve_part1(input), // Not Working
-            (20, 2) => y2024::day20::solve_part2(input), // Not Working
-            (21, 1) => y2024::day21::solve_keypad_part1(input), // Not Working
-            (21, 2) => y2024::day21::solve_keypad_part2(input), // Not Working
+            (20, 1) => y2024::day20::solve_part1(input),
+            (20, 2) => y2024::day20::solve_part2(input),
+            (21, 1) => y2024::day21::solve_part1(input),
+            (21, 2) => y2024::day21::solve_part2(input),
             (22, 1) => y2024::day22::solve_part1(input),
             (22, 2) => y2024::day22::solve_part2(input), // Not Working
             (23, 1) => y2024::day23::solve_part1(input),
             (23, 2) => y2024::day23::solve_part2(input),
             (24, 1) => y2024::day24::solve_part1(input),
-            (24, 2) => y2024::day24::solve_part2(input),
+            (24, 2) => y2024::day24::solve_part2(input), // Not Working
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),

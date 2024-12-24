@@ -1,121 +1,194 @@
-use std::collections::HashMap;
+use itertools::Itertools;
+use std::collections::{HashMap, VecDeque};
 
-type KeypadCache = HashMap<((usize, usize), (usize, usize), usize), usize>;
+type ButtonSequences = HashMap<(char, char), Vec<String>>;
 
-fn solve_keypad(input: &str, depth: usize) -> usize {
-    let numpad = [
-        b"789".to_vec(),
-        b"456".to_vec(),
-        b"123".to_vec(),
-        b" 0A".to_vec(),
-    ];
+/// Compute sequences for moving between buttons on the keypad.
+fn compute_sequences(keypad: &[&str]) -> ButtonSequences {
+    let mut positions = HashMap::new();
+    let size_x = i32::try_from(keypad[0].len()).unwrap();
+    let size_y = i32::try_from(keypad.len()).unwrap();
 
-    let mut cache: KeypadCache = HashMap::new();
+    // Store positions of buttons
+    for (y, row) in keypad.iter().enumerate() {
+        for (x, button) in row.chars().enumerate() {
+            if button != ' ' {
+                positions.insert(button, (x as i32, y as i32));
+            }
+        }
+    }
 
-    // Recursive function with memoization to calculate moves
-    fn do_move(
-        from: (usize, usize),
-        to: (usize, usize),
-        depth: usize,
-        cache: &mut KeypadCache,
-    ) -> usize {
-        if let Some(&result) = cache.get(&(from, to, depth)) {
+    let mut sequences: ButtonSequences = HashMap::new();
+    for &from_button in positions.keys() {
+        for &to_button in positions.keys() {
+            if from_button == to_button {
+                sequences.insert((from_button, to_button), vec!["A".to_string()]);
+                continue;
+            }
+
+            let mut possibilities = Vec::new();
+            let mut queue = VecDeque::new();
+            let mut shortest = usize::MAX;
+            let mut visited = HashMap::new();
+
+            queue.push_front((positions[&from_button], String::new()));
+            visited.insert(positions[&from_button], 0);
+
+            while let Some(((x, y), moves)) = queue.pop_back() {
+                if (x, y) == positions[&to_button] {
+                    if moves.len() < shortest {
+                        shortest = moves.len();
+                        possibilities.clear();
+                    }
+
+                    if moves.len() == shortest {
+                        possibilities.push(format!("{moves}A"));
+                    }
+                    continue;
+                }
+
+                for (nx, ny, nm) in [
+                    (x - 1, y, '<'),
+                    (x + 1, y, '>'),
+                    (x, y - 1, '^'),
+                    (x, y + 1, 'v'),
+                ] {
+                    if nx < 0 || nx >= size_x || ny < 0 || ny >= size_y {
+                        continue;
+                    }
+
+                    let button = keypad[ny as usize].chars().nth(nx as usize).unwrap();
+                    if button == ' ' {
+                        continue;
+                    }
+
+                    if *visited.get(&(nx, ny)).unwrap_or(&usize::MAX) >= moves.len() {
+                        queue.push_front(((nx, ny), format!("{moves}{nm}")));
+                        visited.insert((nx, ny), moves.len());
+                    }
+                }
+            }
+
+            sequences.insert((from_button, to_button), possibilities);
+        }
+    }
+
+    sequences
+}
+
+struct Solver {
+    numerical_sequences: ButtonSequences,
+    directional_sequences: ButtonSequences,
+}
+
+impl Solver {
+    fn new() -> Self {
+        let numerical_keypad = ["789", "456", "123", " 0A"];
+        let directional_keypad = [" ^A", "<v>"];
+        Self {
+            numerical_sequences: compute_sequences(&numerical_keypad),
+            directional_sequences: compute_sequences(&directional_keypad),
+        }
+    }
+
+    fn find_code_seqs(&self, code: &str) -> Vec<String> {
+        let mut sequences = Vec::new();
+        for i in 0..code.len() {
+            let button_from = if i == 0 {
+                'A'
+            } else {
+                code.chars().nth(i - 1).unwrap()
+            };
+            let button_to = code.chars().nth(i).unwrap();
+            sequences.push(self.numerical_sequences[&(button_from, button_to)].clone());
+        }
+        sequences
+            .iter()
+            .multi_cartesian_product()
+            .map(|steps| steps.iter().join(""))
+            .collect()
+    }
+
+    fn compute_seq_length(
+        &self,
+        target_seq: &str,
+        robots: u32,
+        cache: &mut HashMap<(String, u32), u64>,
+    ) -> u64 {
+        if let Some(&cached) = cache.get(&(target_seq.to_string(), robots)) {
+            return cached;
+        }
+
+        if robots <= 1 {
+            let result: u64 = (0..target_seq.len())
+                .map(|i| {
+                    let from = if i == 0 {
+                        'A'
+                    } else {
+                        target_seq.chars().nth(i - 1).unwrap()
+                    };
+                    let to = target_seq.chars().nth(i).unwrap();
+                    self.directional_sequences[&(from, to)][0].len() as u64
+                })
+                .sum();
+            cache.insert((target_seq.to_string(), robots), result);
             return result;
         }
 
-        let (x1, y1) = from;
-        let (x2, y2) = to;
+        let result: u64 = (0..target_seq.len())
+            .map(|i| {
+                let from = if i == 0 {
+                    'A'
+                } else {
+                    target_seq.chars().nth(i - 1).unwrap()
+                };
+                let to = target_seq.chars().nth(i).unwrap();
+                self.directional_sequences[&(from, to)]
+                    .iter()
+                    .map(|seq| self.compute_seq_length(seq, robots - 1, cache))
+                    .min()
+                    .unwrap()
+            })
+            .sum();
 
-        if depth == 0 {
-            return x1.abs_diff(x2) + y1.abs_diff(y2) + 1; // Add 1 for pressing the key
-        }
-
-        let mut ans = usize::MAX;
-
-        // Handle moves along both X and Y directions
-        if y1 != 0 || (depth == 25 && x2 != 3) || (depth != 25 && x2 != 0) {
-            let mut cur = 0;
-            let mut pos = (0, 2);
-
-            for _ in x1..x2 {
-                cur += do_move(pos, (1, 1), depth - 1, cache);
-                pos = (1, 1);
-            }
-            for _ in x2..x1 {
-                cur += do_move(pos, (0, 1), depth - 1, cache);
-                pos = (0, 1);
-            }
-            for _ in y1..y2 {
-                cur += do_move(pos, (1, 2), depth - 1, cache);
-                pos = (1, 2);
-            }
-            for _ in y2..y1 {
-                cur += do_move(pos, (1, 0), depth - 1, cache);
-                pos = (1, 0);
-            }
-            ans = cur + do_move(pos, (0, 2), depth - 1, cache);
-        }
-
-        if y2 != 0 || (depth == 25 && x1 != 3) || (depth != 25 && x1 != 0) {
-            let mut cur = 0;
-            let mut pos = (0, 2);
-
-            for _ in y1..y2 {
-                cur += do_move(pos, (1, 2), depth - 1, cache);
-                pos = (1, 2);
-            }
-            for _ in y2..y1 {
-                cur += do_move(pos, (1, 0), depth - 1, cache);
-                pos = (1, 0);
-            }
-            for _ in x1..x2 {
-                cur += do_move(pos, (1, 1), depth - 1, cache);
-                pos = (1, 1);
-            }
-            for _ in x2..x1 {
-                cur += do_move(pos, (0, 1), depth - 1, cache);
-                pos = (0, 1);
-            }
-            ans = ans.min(cur + do_move(pos, (0, 2), depth - 1, cache));
-        }
-
-        cache.insert((from, to, depth), ans);
-        ans
+        cache.insert((target_seq.to_string(), robots), result);
+        result
     }
 
-    let mut total_cost = 0;
-
-    for line in input.lines() {
-        let mut cur_cost = 0;
-        let mut current_pos = (3, 2); // Start at 'A'
-        let mut num = 0;
-
-        for &key in line.as_bytes() {
-            for (i, row) in numpad.iter().enumerate() {
-                if let Some(j) = row.iter().position(|&c| c == key) {
-                    let move_cost = do_move(current_pos, (i, j), depth, &mut cache);
-                    cur_cost += move_cost;
-                    current_pos = (i, j);
-                    if key.is_ascii_digit() {
-                        num = num * 10 + (key - b'0') as usize;
-                    }
-                    break;
-                }
-            }
-        }
-
-        total_cost += cur_cost * num;
+    fn complexity(&self, code: &str, robots: u32) -> u64 {
+        let seqs = self.find_code_seqs(code);
+        let mut cache = HashMap::new();
+        let min_length = seqs
+            .iter()
+            .map(|seq| self.compute_seq_length(seq, robots, &mut cache))
+            .min()
+            .unwrap();
+        let num_code = code
+            .chars()
+            .map_while(|c| c.to_digit(10))
+            .fold(0, |acc, d| acc * 10 + d);
+        min_length * u64::from(num_code)
     }
-
-    total_cost
 }
 
-pub fn solve_keypad_part1(input: &str) -> String {
-    solve_keypad(input, 2).to_string()
+pub fn solve_part1(input: &str) -> String {
+    let codes: Vec<String> = input.lines().map(|line| line.to_string()).collect();
+    let solver = Solver::new();
+    codes
+        .iter()
+        .map(|code| solver.complexity(code, 2))
+        .sum::<u64>()
+        .to_string()
 }
 
-pub fn solve_keypad_part2(input: &str) -> String {
-    solve_keypad(input, 25).to_string()
+pub fn solve_part2(input: &str) -> String {
+    let codes: Vec<String> = input.lines().map(|line| line.to_string()).collect();
+    let solver = Solver::new();
+    codes
+        .iter()
+        .map(|code| solver.complexity(code, 25))
+        .sum::<u64>()
+        .to_string()
 }
 
 #[cfg(test)]
@@ -124,13 +197,8 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let input = r"413A
-480A
-682A
-879A
-083A";
-
-        assert_eq!(solve_keypad_part1(input), "174242");
-        assert_eq!(solve_keypad_part2(input), "220493992841852");
+        let input = "029A\n980A\n";
+        assert_eq!(solve_part1(input), "126384");
+        assert_eq!(solve_part2(input), "313254");
     }
 }
