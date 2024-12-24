@@ -1,119 +1,171 @@
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BinaryHeap, HashMap};
 
-const DIRS: [(isize, isize); 4] = [(-1, 0), (0, 1), (1, 0), (0, -1)]; // Directions: up, right, down, left
+use crate::coord::Coord;
+use crate::grid::Grid;
 
-type ParseResult = (Vec<Vec<char>>, (usize, usize), (usize, usize));
+/// Represents the puzzle state and operations.
+struct Puzzle {
+    racetrack: Grid,                 // The racetrack
+    start: Coord,                    // Start position
+    end: Coord,                      // End position
+    from_start: HashMap<Coord, i32>, // Distance from start
+    to_end: HashMap<Coord, i32>,     // Distance from end
+    boring: i32,                     // Total track length without cheats
+    track: Vec<Coord>,               // Valid track positions
+}
 
-/// Parses the input and converts it into a grid with start and end positions.
-fn parse_input(input: &str) -> ParseResult {
-    let grid: Vec<Vec<char>> = input.lines().map(|line| line.chars().collect()).collect();
-    let mut start = (0, 0);
-    let mut end = (0, 0);
+impl Puzzle {
+    /// Initializes a new Puzzle instance.
+    fn new(grid: Grid, start: Coord, end: Coord) -> Self {
+        let mut puzzle = Self {
+            racetrack: grid,
+            start,
+            end,
+            from_start: HashMap::new(),
+            to_end: HashMap::new(),
+            boring: 0,
+            track: Vec::new(),
+        };
+        puzzle.initialize();
+        puzzle
+    }
 
-    for (r, row) in grid.iter().enumerate() {
-        for (c, &cell) in row.iter().enumerate() {
-            if cell == 'S' {
-                start = (r, c);
-            } else if cell == 'E' {
-                end = (r, c);
+    /// Configures the puzzle with distances and track positions.
+    fn initialize(&mut self) {
+        self.from_start = self.compute_distances(self.start);
+        self.to_end = self.compute_distances(self.end);
+        self.boring = self.from_start[&self.end];
+
+        self.track = self
+            .racetrack
+            .iter()
+            .filter(|&(pos, _)| self.racetrack[pos] != '#')
+            .map(|(pos, _)| pos)
+            .collect();
+    }
+
+    /// Computes distances from a given start position to all reachable positions.
+    fn compute_distances(&self, start: Coord) -> HashMap<Coord, i32> {
+        let mut costs = HashMap::new();
+        let mut heap = BinaryHeap::new();
+
+        costs.insert(start, 0);
+        heap.push((0, start));
+
+        while let Some((cost, p)) = heap.pop() {
+            for np in self.racetrack.iter_directions(p) {
+                if self.racetrack[np] != '#' {
+                    let new_cost = cost + 1;
+                    if costs.get(&np).unwrap_or(&i32::MAX) > &new_cost {
+                        costs.insert(np, new_cost);
+                        heap.push((new_cost, np));
+                    }
+                }
             }
+        }
+
+        costs
+    }
+
+    /// Solves the problem with the given cheat constraints.
+    fn solve(&self, max_cheats: i32, min_gain: i32) -> u32 {
+        let mut nb = 0;
+
+        for cheat_start in &self.track {
+            for cheat_end in &self.track {
+                let cheat_dist = cheat_start.manhattan_distance(cheat_end);
+
+                if cheat_dist <= max_cheats {
+                    let time = match (self.from_start.get(cheat_start), self.to_end.get(cheat_end))
+                    {
+                        (Some(&start_dist), Some(&end_dist)) => start_dist + cheat_dist + end_dist,
+                        _ => {
+                            println!(
+                                "Missing distances for {:?} or {:?}!",
+                                cheat_start, cheat_end
+                            );
+                            continue;
+                        }
+                    };
+
+                    if time + min_gain <= self.boring {
+                        nb += 1;
+                    }
+                }
+            }
+        }
+        nb
+    }
+
+    /// Solves Part 1.
+    pub fn solve_part1(grid: Grid, start: Coord, end: Coord) -> u32 {
+        let puzzle = Puzzle::new(grid, start, end);
+        puzzle.solve(2, 100)
+    }
+
+    /// Solves Part 2.
+    pub fn solve_part2(grid: Grid, start: Coord, end: Coord) -> u32 {
+        let puzzle = Puzzle::new(grid, start, end);
+        puzzle.solve(20, 100)
+    }
+}
+
+/// Parses input into a Grid and start/end positions.
+fn parse_input(input: &str) -> (Grid, Coord, Coord) {
+    let grid = Grid::parse(input);
+    let mut start = Coord::new(0, 0);
+    let mut end = Coord::new(0, 0);
+
+    for (pos, &c) in grid.iter() {
+        if c == 'S' {
+            start = pos;
+        } else if c == 'E' {
+            end = pos;
         }
     }
 
     (grid, start, end)
 }
 
-/// Performs BFS to calculate distances from the endpoint to all reachable cells.
-fn bfs(grid: &[Vec<char>], end: (usize, usize)) -> HashMap<(usize, usize), i32> {
-    let mut dist = HashMap::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((0, end.0, end.1));
-
-    while let Some((d, r, c)) = queue.pop_front() {
-        if dist.contains_key(&(r, c)) {
-            continue;
-        }
-        dist.insert((r, c), d);
-
-        for &(dr, dc) in &DIRS {
-            let nr = r as isize + dr;
-            let nc = c as isize + dc;
-
-            if nr >= 0
-                && nc >= 0
-                && (nr as usize) < grid.len()
-                && (nc as usize) < grid[0].len()
-                && grid[nr as usize][nc as usize] != '#'
-            {
-                queue.push_back((d + 1, nr as usize, nc as usize));
-            }
-        }
-    }
-
-    dist
-}
-
-/// Simulates the race with cheats and finds the total number of valid cheats.
-fn find_cheat(
-    grid: &[Vec<char>],
-    dist: &HashMap<(usize, usize), i32>,
-    start: (usize, usize),
-    max_distance: i32,
-    cheat_time: usize,
-) -> usize {
-    let mut seen = HashSet::new(); // Tracks visited states
-    let mut queue = VecDeque::new();
-    let mut cheat_count = 0;
-
-    queue.push_back((0, false, cheat_time, start.0, start.1));
-
-    while let Some((d, used_cheat, remaining_cheat, r, c)) = queue.pop_front() {
-        if !seen.insert((d, used_cheat, remaining_cheat, r, c)) {
-            continue; // Skip already visited states
-        }
-
-        if let Some(&target_dist) = dist.get(&(r, c)) {
-            if !used_cheat && target_dist <= max_distance - d - 100 {
-                cheat_count += 1;
-            }
-        }
-
-        for &(dr, dc) in &DIRS {
-            let nr = r as isize + dr;
-            let nc = c as isize + dc;
-
-            if nr < 0 || nc < 0 || nr as usize >= grid.len() || nc as usize >= grid[0].len() {
-                continue;
-            }
-
-            let nr = nr as usize;
-            let nc = nc as usize;
-
-            if grid[nr][nc] != '#' {
-                queue.push_back((d + 1, used_cheat, remaining_cheat, nr, nc));
-            } else if !used_cheat && remaining_cheat > 0 {
-                queue.push_back((d + 1, true, remaining_cheat - 1, nr, nc));
-            }
-        }
-    }
-
-    cheat_count
-}
-
-/// Solves Part 1 by finding cheats with a cheat duration of 2.
+/// Solves Part 1.
 pub fn solve_part1(input: &str) -> String {
     let (grid, start, end) = parse_input(input);
-    let dist = bfs(&grid, end);
-    let max_distance = *dist.get(&start).unwrap();
-
-    find_cheat(&grid, &dist, start, max_distance, 2).to_string()
+    Puzzle::solve_part1(grid, start, end).to_string()
 }
 
-/// Solves Part 2 by finding cheats with a cheat duration of 20.
+/// Solves Part 2.
 pub fn solve_part2(input: &str) -> String {
     let (grid, start, end) = parse_input(input);
-    let dist = bfs(&grid, end);
-    let max_distance = *dist.get(&start).unwrap();
+    Puzzle::solve_part2(grid, start, end).to_string()
+}
 
-    find_cheat(&grid, &dist, start, max_distance, 20).to_string()
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        let input = r"
+###############
+#.............#
+#.###########.#
+#S#.........#E#
+###############
+";
+
+        assert_eq!(solve_part1(input), "0");
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = r"
+###############
+#.............#
+#.###########.#
+#S#.........#E#
+###############
+";
+
+        assert_eq!(solve_part2(input), "0");
+    }
 }

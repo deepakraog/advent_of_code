@@ -27,8 +27,12 @@ pub mod solutions {
     }
 }
 
+pub mod coord;
+
 /// elves are helpful
 pub mod elves;
+
+pub mod grid;
 
 use solutions::*;
 
