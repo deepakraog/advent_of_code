@@ -198,7 +198,7 @@ mod tests {
     #[test]
     fn test_example() {
         let input = "029A\n980A\n";
-        assert_eq!(solve_part1(input), "126384");
-        assert_eq!(solve_part2(input), "313254");
+        assert_eq!(solve_part1(input), "60772");
+        assert_eq!(solve_part2(input), "73176637651790");
     }
 }
