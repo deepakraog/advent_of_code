@@ -1,3 +1,5 @@
+Here’s the updated `README.md` with your solution results included:
+
 ````markdown
 # 🎄 Advent of Code Solutions in Rust 🦀
 
@@ -131,6 +133,13 @@ If you'd like to contribute:
 
 ---
 
+## 🎉 📈 Progress Card
+
+2024 (https://adventofcode.com/2024/leaderboard/private/view/4743704)
+![Solution Results](https://github.com/user-attachments/assets/1d4bef48-1171-4e37-b467-d549a861ceee)
+
+---
+
 ## 🔗 Resources
 
 - [Advent of Code](https://adventofcode.com)
@@ -138,3 +147,7 @@ If you'd like to contribute:
 - [aoc-cli on GitHub](https://github.com/scarvalhojr/aoc-cli)
 
 Happy coding! 🎉
+
+```
+
+```
