@@ -71,7 +71,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (15, 1) => y2024::day15::solve_part1(input),
             (15, 2) => y2024::day15::solve_part2(input),
             (16, 1) => y2024::day16::solve_part1(input),
-            (16, 2) => y2024::day16::solve_part2(input), // Not Working
+            (16, 2) => y2024::day16::solve_part2(input),
             (17, 1) => y2024::day17::solve_part1(input),
             (17, 2) => y2024::day17::solve_part2(input),
             (18, 1) => y2024::day18::solve_part1(input),
@@ -83,7 +83,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (21, 1) => y2024::day21::solve_part1(input),
             (21, 2) => y2024::day21::solve_part2(input),
             (22, 1) => y2024::day22::solve_part1(input),
-            (22, 2) => y2024::day22::solve_part2(input), // Not Working
+            (22, 2) => y2024::day22::solve_part2(input),
             (23, 1) => y2024::day23::solve_part1(input),
             (23, 2) => y2024::day23::solve_part2(input),
             (24, 1) => y2024::day24::solve_part1(input),
