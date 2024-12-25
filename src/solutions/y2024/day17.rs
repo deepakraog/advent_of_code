@@ -1,107 +1,180 @@
-use std::collections::HashMap;
+/// Represents the Chronospatial Computer.
+pub struct Puzzle {
+    reg_a: u32,
+    reg_b: u32,
+    reg_c: u32,
+    program: Vec<u32>,
+}
 
-/// Executes the Chronospatial Computer program and returns the output as a comma-separated string.
-pub fn execute_program(input: &str) -> String {
-    // Parse the input into registers and program
-    let (mut registers, program) = parse_input(input);
+impl Puzzle {
+    /// Create a new Puzzle instance.
+    pub const fn new() -> Self {
+        Self {
+            reg_a: 0,
+            reg_b: 0,
+            reg_c: 0,
+            program: Vec::new(),
+        }
+    }
 
-    // Instruction pointer starts at 0
-    let mut ip = 0;
-    let mut output = Vec::new();
+    /// Parses the input into registers and program.
+    pub fn configure(&mut self, input: &str) {
+        for line in input.lines() {
+            if let Some(v) = line.strip_prefix("Register A: ") {
+                self.reg_a = v.parse().unwrap();
+            } else if let Some(v) = line.strip_prefix("Register B: ") {
+                self.reg_b = v.parse().unwrap();
+            } else if let Some(v) = line.strip_prefix("Register C: ") {
+                self.reg_c = v.parse().unwrap();
+            } else if let Some(v) = line.strip_prefix("Program: ") {
+                self.program = v.split(',').filter_map(|i| i.trim().parse().ok()).collect();
+            }
+        }
+    }
 
-    // Execute the program
-    while ip < program.len() {
-        let opcode = program[ip];
-        let operand = program[ip + 1];
-        match opcode {
-            0 => {
-                // adv: Divide A by 2^operand (combo)
-                let divisor = combo_value(operand, &registers).pow(2);
-                registers.insert('A', registers[&'A'] / divisor);
+    /// Runs the program with given initial register values.
+    fn run(&self, mut a: u32, mut b: u32, mut c: u32) -> Vec<u32> {
+        let mut ip = 0;
+        let mut output = Vec::new();
+
+        while ip < self.program.len() - 1 {
+            let opcode = self.program[ip];
+            let literal = self.program[ip + 1];
+
+            let combo = || match literal {
+                0..=3 => literal,
+                4 => a,
+                5 => b,
+                6 => c,
+                _ => panic!("Invalid combo operand"),
+            };
+
+            match opcode {
+                0 => a >>= literal,   // adv
+                1 => b ^= literal,    // bxl
+                2 => b = combo() % 8, // bst
+                3 => {
+                    if a != 0 {
+                        ip = literal as usize;
+                        continue;
+                    }
+                } // jnz
+                4 => b ^= c,          // bxc
+                5 => output.push(combo() % 8), // out
+                6 => b = a >> combo(), // bdv
+                7 => c = a >> combo(), // cdv
+                _ => panic!("Unknown opcode: {}", opcode),
             }
-            1 => {
-                // bxl: Bitwise XOR B with literal operand
-                let literal = operand;
-                registers.insert('B', registers[&'B'] ^ literal as i64);
-            }
-            2 => {
-                // bst: Set B to combo operand % 8
-                registers.insert('B', combo_value(operand, &registers) % 8);
-            }
-            3 => {
-                // jnz: Jump to operand if A != 0
-                if registers[&'A'] != 0 {
-                    ip = operand;
-                    continue;
+
+            ip += 2;
+        }
+
+        output
+    }
+
+    /// Finds the lowest initial value of A that makes the program output itself.
+    fn quine(&self, a: u64, i: usize, xor1: u64, xor2: u64) -> u64 {
+        let target = self.program[i] as u64;
+        let start_octal = u64::from(i == self.program.len() - 1);
+
+        for octal in start_octal..8 {
+            let new_a = (a * 8) | octal;
+            let mut b = octal ^ xor1;
+            let c = new_a >> b;
+            b ^= xor2;
+            b ^= c;
+
+            if b % 8 == target {
+                if i == 0 {
+                    return new_a;
+                }
+                let new_a = self.quine(new_a, i - 1, xor1, xor2);
+                if new_a != u64::MAX {
+                    return new_a;
                 }
             }
-            4 => {
-                // bxc: Bitwise XOR B with C
-                registers.insert('B', registers[&'B'] ^ registers[&'C']);
-            }
-            5 => {
-                // out: Output combo operand % 8
-                output.push((combo_value(operand, &registers) % 8).to_string());
-            }
-            6 => {
-                // bdv: Like adv but stores result in B
-                let divisor = combo_value(operand, &registers).pow(2);
-                registers.insert('B', registers[&'A'] / divisor);
-            }
-            7 => {
-                // cdv: Like adv but stores result in C
-                let divisor = combo_value(operand, &registers).pow(2);
-                registers.insert('C', registers[&'A'] / divisor);
-            }
-            _ => panic!("Invalid opcode: {}", opcode),
         }
-        ip += 2; // Advance instruction pointer by 2
+        u64::MAX
     }
 
-    output.join(",")
-}
-
-/// Parses the input and extracts the registers and program.
-fn parse_input(input: &str) -> (HashMap<char, i64>, Vec<usize>) {
-    let mut registers = HashMap::new();
-    let mut program = Vec::new();
-
-    let lines: Vec<&str> = input.lines().collect();
-    for line in &lines {
-        if line.starts_with("Register A:") {
-            registers.insert(
-                'A',
-                line.split_whitespace().nth(2).unwrap().parse().unwrap(),
-            );
-        } else if line.starts_with("Register B:") {
-            registers.insert(
-                'B',
-                line.split_whitespace().nth(2).unwrap().parse().unwrap(),
-            );
-        } else if line.starts_with("Register C:") {
-            registers.insert(
-                'C',
-                line.split_whitespace().nth(2).unwrap().parse().unwrap(),
-            );
-        } else if line.starts_with("Program:") {
-            program = line
-                .split_whitespace()
-                .skip(1)
-                .flat_map(|s| s.split(',').map(|x| x.parse::<usize>().unwrap()))
-                .collect();
-        }
+    /// Solve part one.
+    pub fn part1(&self) -> String {
+        let output = self.run(self.reg_a, self.reg_b, self.reg_c);
+        output
+            .iter()
+            .map(u32::to_string)
+            .collect::<Vec<String>>()
+            .join(",")
     }
 
-    (registers, program)
+    /// Solve part two.
+    pub fn part2(&self) -> String {
+        let xors = self
+            .program
+            .chunks(2)
+            .filter(|instr| instr[0] == 1)
+            .map(|instr| instr[1])
+            .collect::<Vec<_>>();
+
+        if xors.len() != 2 {
+            return "No solution".to_string();
+        }
+
+        let xor1 = xors[0] as u64;
+        let xor2 = xors[1] as u64;
+
+        let result = self.quine(0, self.program.len() - 1, xor1, xor2);
+        if result == u64::MAX {
+            "No solution".to_string()
+        } else {
+            result.to_string()
+        }
+    }
 }
 
-/// Computes the value of a combo operand.
-fn combo_value(operand: usize, registers: &HashMap<char, i64>) -> i64 {
-    match operand {
-        0..=3 => operand as i64,
-        4 => registers[&'A'],
-        5 => registers[&'B'],
-        6 => registers[&'C'],
-        _ => panic!("Invalid combo operand: {}", operand),
+impl Default for Puzzle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Solves part one of the puzzle.
+pub fn solve_part1(input: &str) -> String {
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.part1()
+}
+
+/// Solves part two of the puzzle.
+pub fn solve_part2(input: &str) -> String {
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.part2()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1() {
+        let input = r"Register A: 729
+Register B: 0
+Register C: 0
+
+Program: 0,1,5,4,3,0";
+
+        assert_eq!(solve_part1(input), "4,6,3,5,6,3,5,2,1,0");
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = r"Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0";
+
+        assert_eq!(solve_part2(input), "No solution");
     }
 }
