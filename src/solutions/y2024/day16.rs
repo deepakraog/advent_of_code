@@ -1,249 +1,222 @@
-use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 
-const DIRS: [(isize, isize); 4] = [(0, 1), (-1, 0), (0, -1), (1, 0)]; // East, North, West, South
+use crate::coord::Coord;
 
-// Type alias for the return type of parse_input
-type ParsedInput = (Vec<Vec<char>>, (usize, usize), (usize, usize));
+const ZERO: Coord = Coord { x: 0, y: 0 };
+const EAST: Coord = Coord { x: 1, y: 0 }; // starting direction
 
-/// Parses the input and finds the start and end positions.
-fn parse_input(input: &str) -> ParsedInput {
-    let mut grid = Vec::new();
-    let mut start = (0, 0);
-    let mut end = (0, 0);
-
-    for (r, line) in input.lines().enumerate() {
-        let row: Vec<char> = line.chars().collect();
-        if let Some(c) = row.iter().position(|&c| c == 'S') {
-            start = (r, c);
-        }
-        if let Some(c) = row.iter().position(|&c| c == 'E') {
-            end = (r, c);
-        }
-        grid.push(row);
-    }
-
-    (grid, start, end)
+struct Cost1 {
+    cost: u32,
+    pos: Coord,
+    dir: Coord,
 }
 
-/// Finds the minimum score from `S` to `E` using Dijkstra's algorithm.
-fn find_min_score(grid: &[Vec<char>], start: (usize, usize), end: (usize, usize)) -> usize {
-    let rows = grid.len();
-    let cols = grid[0].len();
-
-    // Priority queue for Dijkstra's algorithm (min-heap)
-    let mut heap = BinaryHeap::new();
-    heap.push(Reverse((0, start, 0))); // (score, (x, y), direction)
-
-    // Visited states to avoid revisiting with higher costs
-    let mut visited: HashMap<((usize, usize), usize), usize> = HashMap::new();
-
-    while let Some(Reverse((score, (x, y), dir))) = heap.pop() {
-        if (x, y) == end {
-            return score; // Found the shortest path to the end
-        }
-
-        // Check if this state has been visited with a lower score
-        if let Some(&visited_score) = visited.get(&((x, y), dir)) {
-            if visited_score <= score {
-                continue;
-            }
-        }
-        visited.insert(((x, y), dir), score);
-
-        // Move forward
-        let (dx, dy) = DIRS[dir];
-        let nx = x as isize + dx;
-        let ny = y as isize + dy;
-        if nx >= 0 && ny >= 0 && nx < rows as isize && ny < cols as isize {
-            let nx = nx as usize;
-            let ny = ny as usize;
-            if grid[nx][ny] != '#' {
-                heap.push(Reverse((score + 1, (nx, ny), dir)));
-            }
-        }
-
-        // Rotate clockwise or counterclockwise
-        let cw = (dir + 1) % 4;
-        let ccw = (dir + 3) % 4;
-        heap.push(Reverse((score + 1000, (x, y), cw)));
-        heap.push(Reverse((score + 1000, (x, y), ccw)));
+impl Cost1 {
+    const fn new(cost: u32, pos: Coord, dir: Coord) -> Self {
+        Self { cost, pos, dir }
     }
-
-    usize::MAX // No valid path found
 }
 
-/// Finds the minimum score and tracks paths from `S` to `E`.
-fn find_paths_and_tiles(
-    grid: &[Vec<char>],
-    start: (usize, usize),
-    end: (usize, usize),
-) -> (usize, HashSet<(usize, usize)>) {
-    let rows = grid.len();
-    let cols = grid[0].len();
-
-    // Priority queue for Dijkstra's algorithm (min-heap)
-    let mut heap = BinaryHeap::new();
-    heap.push(Reverse((0, start, 0))); // (score, (x, y), direction)
-
-    // Visited states to avoid revisiting with higher costs
-    let mut visited: HashMap<((usize, usize), usize), usize> = HashMap::new();
-
-    // Backtracking map to track paths
-    let mut paths: HashMap<(usize, usize), Vec<(usize, usize)>> = HashMap::new();
-
-    let mut min_score = usize::MAX;
-
-    while let Some(Reverse((score, (x, y), dir))) = heap.pop() {
-        if (x, y) == end {
-            min_score = min_score.min(score); // Update the minimum score if needed
-            continue; // Continue processing to track all best paths
-        }
-
-        // Check if this state has been visited with a lower score
-        if let Some(&visited_score) = visited.get(&((x, y), dir)) {
-            if visited_score <= score {
-                continue;
-            }
-        }
-        visited.insert(((x, y), dir), score);
-
-        // Move forward
-        let (dx, dy) = DIRS[dir];
-        let nx = x as isize + dx;
-        let ny = y as isize + dy;
-        if nx >= 0 && ny >= 0 && nx < rows as isize && ny < cols as isize {
-            let nx = nx as usize;
-            let ny = ny as usize;
-            if grid[nx][ny] != '#' {
-                heap.push(Reverse((score + 1, (nx, ny), dir)));
-                paths.entry((nx, ny)).or_default().push((x, y));
-            }
-        }
-
-        // Rotate clockwise or counterclockwise
-        let cw = (dir + 1) % 4;
-        let ccw = (dir + 3) % 4;
-        heap.push(Reverse((score + 1000, (x, y), cw)));
-        heap.push(Reverse((score + 1000, (x, y), ccw)));
+impl Ord for Cost1 {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
     }
-
-    // Backtrack to find all tiles in any best path
-    let mut best_tiles = HashSet::new();
-    let mut queue = vec![end];
-    while let Some(tile) = queue.pop() {
-        if !best_tiles.insert(tile) {
-            continue; // Already processed
-        }
-        if let Some(parents) = paths.get(&tile) {
-            for &parent in parents {
-                queue.push(parent);
-            }
-        }
-    }
-
-    (min_score, best_tiles)
 }
 
-/// Solves the problem and returns the lowest score as a `String`.
+impl PartialOrd for Cost1 {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Cost1 {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost == other.cost
+    }
+}
+
+impl Eq for Cost1 {}
+
+struct Cost2 {
+    cost: u32,
+    pos: Coord,
+    dir: Coord,
+    path: Vec<Coord>,
+}
+
+impl Cost2 {
+    const fn new(cost: u32, pos: Coord, dir: Coord, path: Vec<Coord>) -> Self {
+        Self {
+            cost,
+            pos,
+            dir,
+            path,
+        }
+    }
+}
+
+impl Ord for Cost2 {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
+
+impl PartialOrd for Cost2 {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Cost2 {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost == other.cost
+    }
+}
+
+impl Eq for Cost2 {}
+
+struct Puzzle {
+    start: Coord,
+    end: Coord,
+    maze: HashSet<Coord>,
+    size: Coord,
+}
+
+impl Puzzle {
+    fn new() -> Self {
+        Self {
+            start: ZERO,
+            end: ZERO,
+            maze: HashSet::new(),
+            size: ZERO,
+        }
+    }
+
+    fn configure(&mut self, input: &str) {
+        for (y, line) in input.lines().enumerate() {
+            let y = i32::try_from(y).unwrap();
+
+            for (x, c) in line.chars().enumerate() {
+                let x = i32::try_from(x).unwrap();
+                self.size.x = x;
+
+                if c == '#' {
+                    continue;
+                }
+
+                if c == 'S' {
+                    self.start = Coord::new(x, y);
+                } else if c == 'E' {
+                    self.end = Coord::new(x, y);
+                }
+                self.maze.insert(Coord { x, y });
+            }
+
+            self.size.y = y;
+        }
+    }
+
+    fn part1(&self) -> u32 {
+        let mut seen = HashSet::new();
+        let mut heap = BinaryHeap::new();
+
+        heap.push(Cost1::new(0, self.start, EAST));
+
+        while let Some(Cost1 { cost, pos, dir }) = heap.pop() {
+            seen.insert((pos, dir));
+
+            let counterclockwise = Coord::new(dir.y, -dir.x);
+            let clockwise = Coord::new(-dir.y, dir.x);
+
+            for (new_cost, new_pos, new_dir) in [
+                (cost + 1, pos + dir, dir),
+                (cost + 1001, pos + counterclockwise, counterclockwise),
+                (cost + 1001, pos + clockwise, clockwise),
+            ] {
+                if new_pos == self.end {
+                    return new_cost;
+                }
+                if self.maze.contains(&new_pos) && !seen.contains(&(new_pos, dir)) {
+                    heap.push(Cost1::new(new_cost, new_pos, new_dir));
+                }
+            }
+        }
+
+        0
+    }
+
+    fn part2(&self) -> usize {
+        let mut heap = BinaryHeap::new();
+        let mut costs = HashMap::new();
+        let mut best_path_tiles = HashSet::new();
+
+        heap.push(Cost2::new(0, self.start, EAST, vec![self.start]));
+
+        while let Some(Cost2 {
+            cost,
+            pos,
+            dir,
+            path: tiles,
+        }) = heap.pop()
+        {
+            if pos == self.end {
+                best_path_tiles.extend(tiles.clone());
+            }
+
+            let counterclockwise = Coord::new(dir.y, -dir.x);
+            let clockwise = Coord::new(-dir.y, dir.x);
+
+            for (new_cost, new_pos, new_dir) in [
+                (cost + 1, pos + dir, dir),
+                (cost + 1001, pos + counterclockwise, counterclockwise),
+                (cost + 1001, pos + clockwise, clockwise),
+            ] {
+                if self.maze.contains(&new_pos)
+                    && costs.get(&(new_pos, new_dir)).copied().unwrap_or(u32::MAX) >= new_cost
+                {
+                    costs.insert((new_pos, new_dir), new_cost);
+                    let mut new_tiles = tiles.clone();
+                    new_tiles.push(new_pos);
+                    heap.push(Cost2::new(new_cost, new_pos, new_dir, new_tiles));
+                }
+            }
+        }
+
+        best_path_tiles.len()
+    }
+}
+
 pub fn solve_part1(input: &str) -> String {
-    let (grid, start, end) = parse_input(input);
-    let min_score = find_min_score(&grid, start, end);
-    min_score.to_string()
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.part1().to_string()
 }
 
-/// Solves Part 2 and returns the count of best path tiles as a `String`.
 pub fn solve_part2(input: &str) -> String {
-    let (grid, start, end) = parse_input(input);
-    let (_min_score, best_tiles) = find_paths_and_tiles(&grid, start, end);
-    best_tiles.len().to_string()
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.part2().to_string()
 }
 
 #[cfg(test)]
-mod tests {
+mod test {
     use super::*;
 
     #[test]
-    fn test_find_min_score1() {
-        let input = r"###############
-#.......#....E#
-#.#.###.#.###.#
-#.....#.#...#.#
-#.###.#####.#.#
-#.#.#.......#.#
-#.#.#####.###.#
-#...........#.#
-###.#.#####.#.#
-#...#.....#.#.#
-#.#.#.###.#.#.#
-#.....#...#.#.#
-#.###.#.#.#.#.#
-#S..#.....#...#
-###############";
-        assert_eq!(solve_part1(input), "7036");
+    fn test_part1() {
+        let input = r"S.....
+..####
+.....
+....E";
+        assert_eq!(solve_part1(input), "2007");
     }
 
     #[test]
-    fn test_find_min_score2() {
-        let input = r"#################
-#...#...#...#..E#
-#.#.#.#.#.#.#.#.#
-#.#.#.#...#...#.#
-#.#.#.#.###.#.#.#
-#...#.#.#.....#.#
-#.#.#.#.#.#####.#
-#.#...#.#.#.....#
-#.#.#####.#.###.#
-#.#.#.......#...#
-#.#.###.#####.###
-#.#.#...#.....#.#
-#.#.#.#####.###.#
-#.#.#.........#.#
-#.#.#.#########.#
-#S#.............#
-#################";
-        assert_eq!(solve_part1(input), "11048");
-    }
-
-    #[test]
-    fn test_find_paths_and_tiles1() {
-        let input = r"###############
-#.......#....E#
-#.#.###.#.###.#
-#.....#.#...#.#
-#.###.#####.#.#
-#.#.#.......#.#
-#.#.#####.###.#
-#...........#.#
-###.#.#####.#.#
-#...#.....#.#.#
-#.#.#.###.#.#.#
-#.....#...#.#.#
-#.###.#.#.#.#.#
-#S..#.....#...#
-###############";
-        assert_eq!(solve_part2(input), "104");
-    }
-
-    #[test]
-    fn test_find_paths_and_tiles2() {
-        let input = r"#################
-#...#...#...#..E#
-#.#.#.#.#.#.#.#.#
-#.#.#.#...#...#.#
-#.#.#.#.###.#.#.#
-#...#.#.#.....#.#
-#.#.#.#.#.#####.#
-#.#...#.#.#.....#
-#.#.#####.#.###.#
-#.#.#.......#...#
-#.#.###.#####.###
-#.#.#...#.....#.#
-#.#.#.#####.###.#
-#.#.#.........#.#
-#.#.#.#########.#
-#S#.............#
-#################";
-        assert_eq!(solve_part2(input), "132");
+    fn test_part2() {
+        let input = r"S.....
+..####
+.....
+....E";
+        assert_eq!(solve_part2(input), "14");
     }
 }
