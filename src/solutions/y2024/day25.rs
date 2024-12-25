@@ -34,25 +34,39 @@ fn fits(key: &Grid, lock: &Grid) -> bool {
     true
 }
 
-/// Counts the number of valid key/lock pairs.
-fn count_valid_pairs(keys: &[Grid], locks: &[Grid]) -> usize {
-    let mut count = 0;
+/// Finds all valid key/lock pairs.
+fn find_valid_pairs(keys: &[Grid], locks: &[Grid]) -> Vec<(usize, usize)> {
+    let mut pairs = Vec::new();
 
-    for key in keys {
-        for lock in locks {
+    for (key_idx, key) in keys.iter().enumerate() {
+        for (lock_idx, lock) in locks.iter().enumerate() {
             if fits(key, lock) {
-                count += 1;
+                pairs.push((key_idx, lock_idx));
             }
         }
     }
 
-    count
+    pairs
 }
 
 /// Solves Part 1: Counts the number of valid key/lock pairs.
 pub fn solve_part1(input: &str) -> String {
     let (keys, locks) = parse_input(input);
-    count_valid_pairs(&keys, &locks).to_string()
+    find_valid_pairs(&keys, &locks).len().to_string()
+}
+
+/// Solves Part 2: Finds all valid key/lock pairs and returns a detailed report.
+pub fn solve_part2(input: &str) -> String {
+    let (keys, locks) = parse_input(input);
+    let valid_pairs = find_valid_pairs(&keys, &locks);
+
+    let mut report = String::new();
+    report.push_str(&format!("Total Valid Pairs: {}\n", valid_pairs.len()));
+    for (key_idx, lock_idx) in valid_pairs {
+        report.push_str(&format!("Key {} fits Lock {}\n", key_idx, lock_idx));
+    }
+
+    report
 }
 
 #[cfg(test)]
@@ -60,7 +74,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_example() {
+    fn test_part1_example() {
         let input = r"#####
 .####
 .####
@@ -94,5 +108,43 @@ mod tests {
 #####";
 
         assert_eq!(solve_part1(input), "1");
+    }
+
+    #[test]
+    fn test_part2_example() {
+        let input = r"#####
+.####
+.####
+.####
+.#.#.
+.#...
+.....
+
+#####
+##.##
+.#.##
+...##
+...#.
+...#.
+.....
+
+.....
+#....
+#....
+#...#
+#.#.#
+#.###
+#####
+
+.....
+.....
+#.#..
+###..
+###.#
+###.#
+#####";
+
+        let expected_report = "Total Valid Pairs: 1\nKey 1 fits Lock 1\n";
+        assert_eq!(solve_part2(input), expected_report);
     }
 }

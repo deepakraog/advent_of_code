@@ -89,7 +89,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (24, 1) => y2024::day24::solve_part1(input),
             (24, 2) => y2024::day24::solve_part2(input), // Not Working
             (25, 1) => y2024::day25::solve_part1(input),
-            (25, 2) => "Not implemented yet".to_string(),
+            (25, 2) => y2024::day25::solve_part2(input),
             _ => "Not implemented yet".to_string(),
         },
         _ => "Not implemented yet".to_string(),
