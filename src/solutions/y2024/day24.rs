@@ -1,142 +1,206 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-/// Represents a single gate operation.
-#[derive(Debug, Clone, PartialEq)]
-enum Gate {
-    And(String, String, String),
-    Or(String, String, String),
-    Xor(String, String, String),
+#[derive(Eq, PartialEq, Hash, Clone, Debug)]
+enum Role {
+    CarryOut,     // the Cout wire
+    IntXorXor,    // intermediate wire between the two XOR gates
+    ABAndGate,    // intermediate wires between AB and the (bottom) AND gate
+    AndGateWires, // wiring of the AND gates
+    SumOut,       // the S wire
 }
 
-/// Parses the input into initial wire values and gate definitions.
-fn parse_input(input: &str) -> (HashMap<String, i32>, Vec<Gate>) {
-    let parts: Vec<&str> = input.split("\n\n").collect();
-    let values = parts[0];
-    let gates = parts[1];
-
-    // Parse initial wire values
-    let mut initial_values = HashMap::new();
-    for line in values.lines() {
-        let parts: Vec<&str> = line.split(": ").collect();
-        initial_values.insert(parts[0].to_string(), parts[1].parse::<i32>().unwrap());
-    }
-
-    // Parse gates
-    let mut gate_list = Vec::new();
-    for line in gates.lines() {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        let n1 = parts[0].to_string();
-        let op = parts[1];
-        let n2 = parts[2].to_string();
-        let output = parts[4].to_string();
-
-        let gate = match op {
-            "AND" => Gate::And(n1, n2, output),
-            "OR" => Gate::Or(n1, n2, output),
-            "XOR" => Gate::Xor(n1, n2, output),
-            _ => panic!("Unknown gate operation: {}", op),
-        };
-        gate_list.push(gate);
-    }
-
-    (initial_values, gate_list)
+#[derive(Eq, PartialEq, Hash, Clone)]
+enum Operation {
+    And,
+    Or,
+    Xor,
 }
 
-/// Simulates the boolean logic gates.
-fn simulate_system(initial_values: &HashMap<String, i32>, gates: &[Gate]) -> HashMap<String, i32> {
-    let mut wire_values = initial_values.clone();
-    let mut unresolved_gates = gates.to_vec();
+impl Operation {
+    fn from(s: &str) -> Self {
+        match s {
+            "AND" => Self::And,
+            "OR" => Self::Or,
+            "XOR" => Self::Xor,
+            _ => panic!("unknown operation: {}", s),
+        }
+    }
 
-    while !unresolved_gates.is_empty() {
-        let mut resolved_gates = Vec::new();
+    const fn eval(&self, a: u8, b: u8) -> u8 {
+        match self {
+            Self::And => a & b,
+            Self::Or => a | b,
+            Self::Xor => a ^ b,
+        }
+    }
+}
 
-        for gate in &unresolved_gates {
-            match gate {
-                Gate::And(n1, n2, output)
-                | Gate::Or(n1, n2, output)
-                | Gate::Xor(n1, n2, output) => {
-                    if let (Some(&v1), Some(&v2)) = (wire_values.get(n1), wire_values.get(n2)) {
-                        let result = match gate {
-                            Gate::And(_, _, _) => v1 & v2,
-                            Gate::Or(_, _, _) => v1 | v2,
-                            Gate::Xor(_, _, _) => v1 ^ v2,
-                        };
-                        wire_values.insert(output.clone(), result);
-                        resolved_gates.push(gate.clone());
+#[derive(Eq, PartialEq, Hash, Clone)]
+struct Gate {
+    a: String,     // input wire
+    b: String,     // input wire
+    op: Operation, // type of gate
+    r: String,     // output wire
+}
+
+fn is_role(set: &HashSet<Role>, role: &Role) -> bool {
+    set.len() == 1 && set.iter().next().unwrap() == role
+}
+
+fn is_roles(set: &HashSet<Role>, role1: &Role, role2: &Role) -> bool {
+    set.len() == 2 && {
+        let roles: Vec<_> = set.iter().collect();
+        (roles[0] == role1 && roles[1] == role2) || (roles[0] == role2 && roles[1] == role1)
+    }
+}
+
+struct Puzzle {
+    wires: HashMap<String, u8>,
+    gates: Vec<Gate>,
+}
+
+impl Puzzle {
+    fn new() -> Self {
+        Self {
+            wires: HashMap::new(),
+            gates: Vec::new(),
+        }
+    }
+
+    /// Parse the input and configure the puzzle.
+    fn configure(&mut self, input: &str) {
+        for line in input.lines() {
+            if line.contains(": ") {
+                let (wire, value) = line.split_once(": ").unwrap();
+                self.wires.insert(wire.to_string(), value.parse().unwrap());
+            }
+            if line.contains(" -> ") {
+                let parts = line.split_ascii_whitespace().collect::<Vec<_>>();
+                let gate = Gate {
+                    a: parts[0].to_string(),
+                    op: Operation::from(parts[1]),
+                    b: parts[2].to_string(),
+                    r: parts[4].to_string(),
+                };
+                self.gates.push(gate);
+            }
+        }
+    }
+
+    /// Solve part one.
+    fn solve_part1(&self) -> String {
+        let mut waiting_gates = self.gates.iter().collect::<Vec<_>>();
+        let mut wires = self.wires.clone();
+
+        while !waiting_gates.is_empty() {
+            let mut next_waiting = Vec::new();
+
+            for gate in &waiting_gates {
+                if let Some(&a) = wires.get(&gate.a) {
+                    if let Some(&b) = wires.get(&gate.b) {
+                        let r = gate.op.eval(a, b);
+                        wires.insert(gate.r.clone(), r);
+                        continue;
                     }
                 }
+                next_waiting.push(*gate);
+            }
+
+            waiting_gates = next_waiting;
+        }
+
+        let result = wires
+            .iter()
+            .filter(|(r, &v)| r.starts_with('z') && v == 1)
+            .fold(0_u64, |acc, (r, _)| {
+                acc | (1 << r[1..].parse::<u64>().unwrap())
+            });
+
+        result.to_string()
+    }
+
+    /// Solve part two.
+    fn solve_part2(&self) -> String {
+        let mut input_types: HashMap<&str, HashSet<Role>> = HashMap::new();
+        let mut result_types: HashMap<&str, HashSet<Role>> = HashMap::new();
+
+        for gate in &self.gates {
+            let mut add_result_role =
+                |r: &Role| result_types.entry(&gate.r).or_default().insert(r.clone());
+
+            if (gate.a.starts_with('x') && gate.b.starts_with('y'))
+                || (gate.a.starts_with('y') && gate.b.starts_with('x'))
+            {
+                add_result_role(match gate.op {
+                    Operation::Xor => &Role::IntXorXor,
+                    Operation::And => &Role::ABAndGate,
+                    Operation::Or => &Role::CarryOut,
+                });
+            } else {
+                let role = match gate.op {
+                    Operation::Xor => &Role::SumOut,
+                    Operation::And => &Role::AndGateWires,
+                    Operation::Or => &Role::CarryOut,
+                };
+
+                input_types.entry(&gate.a).or_default().insert(role.clone());
+                input_types.entry(&gate.b).or_default().insert(role.clone());
+                add_result_role(role);
             }
         }
 
-        // Remove resolved gates from the list
-        unresolved_gates.retain(|gate| !resolved_gates.contains(gate));
-    }
+        let last_z_wire = result_types
+            .keys()
+            .filter(|wire| wire.starts_with('z'))
+            .max()
+            .unwrap();
 
-    wire_values
-}
+        let mut bad_wires: Vec<&str> = Vec::new();
 
-/// Combines `z` wires into a binary number and converts it to decimal.
-fn calculate_output(wire_values: &HashMap<String, i32>) -> i64 {
-    let mut binary_representation = Vec::new();
+        for wire in result_types.keys() {
+            let inp = &input_types.entry(wire).or_default();
+            let res = &result_types[wire];
 
-    for (wire, &value) in wire_values.iter() {
-        if let Some(stripped) = wire.strip_prefix('z') {
-            let index: usize = stripped.parse().unwrap();
-            if index >= binary_representation.len() {
-                binary_representation.resize(index + 1, 0);
+            if wire == last_z_wire && is_role(res, &Role::CarryOut) {
+                continue;
             }
-            binary_representation[index] = value;
-        }
-    }
 
-    binary_representation
-        .iter()
-        .rev()
-        .fold(0, |acc, &bit| (acc << 1) | bit as i64)
+            if inp.is_empty() && wire.starts_with('z') && is_role(res, &Role::SumOut) {
+                continue;
+            }
+
+            if is_role(inp, &Role::CarryOut)
+                && (is_role(res, &Role::AndGateWires) || is_role(res, &Role::ABAndGate))
+            {
+                continue;
+            }
+
+            if is_roles(inp, &Role::SumOut, &Role::AndGateWires)
+                && (is_role(res, &Role::CarryOut) || is_role(res, &Role::IntXorXor))
+            {
+                continue;
+            }
+
+            bad_wires.push(wire);
+        }
+
+        bad_wires.sort_unstable();
+        bad_wires.join(",")
+    }
 }
 
-/// Solves Part 1: Simulates the gates and calculates the output.
+/// Exposed function for part one.
 pub fn solve_part1(input: &str) -> String {
-    let (initial_values, gates) = parse_input(input);
-    let wire_values = simulate_system(&initial_values, &gates);
-    calculate_output(&wire_values).to_string()
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.solve_part1()
 }
 
-/// Solves Part 2: Optimizes the system to reduce incorrect output.
+/// Exposed function for part two.
 pub fn solve_part2(input: &str) -> String {
-    let (initial_values, gates) = parse_input(input);
-
-    let mut min_wrong_bits = usize::MAX;
-    let mut best_gates = gates.clone();
-
-    // Try swapping gates to minimize wrong bits
-    for i in 0..gates.len() {
-        for j in i + 1..gates.len() {
-            let mut swapped_gates = gates.clone();
-            swapped_gates.swap(i, j);
-
-            let wire_values = simulate_system(&initial_values, &swapped_gates);
-            let z_wires = calculate_output(&wire_values);
-
-            let correct_value = 42; // Replace with the correct value if known
-            let wrong_bits = (z_wires ^ correct_value).count_ones() as usize;
-
-            if wrong_bits < min_wrong_bits {
-                min_wrong_bits = wrong_bits;
-                best_gates = swapped_gates;
-            }
-
-            if min_wrong_bits == 0 {
-                break;
-            }
-        }
-        if min_wrong_bits == 0 {
-            break;
-        }
-    }
-
-    let optimized_wire_values = simulate_system(&initial_values, &best_gates);
-    calculate_output(&optimized_wire_values).to_string()
+    let mut puzzle = Puzzle::new();
+    puzzle.configure(input);
+    puzzle.solve_part2()
 }
 
 #[cfg(test)]
@@ -180,6 +244,6 @@ x00 AND y00 -> z00
 x01 XOR y01 -> z01
 x02 OR y02 -> z02";
 
-        assert_eq!(solve_part2(input), "7");
+        assert_eq!(solve_part2(input), "z00,z01");
     }
 }
