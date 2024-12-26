@@ -49,7 +49,7 @@ fn find_valid_pairs(keys: &[Grid], locks: &[Grid]) -> Vec<(usize, usize)> {
     pairs
 }
 
-/// Solves Part 1: Counts the number of valid key/lock pairs.
+/// Counts the number of valid key/lock pairs.
 pub fn valid_pairs(input: &str) -> String {
     let (keys, locks) = parse_input(input);
     find_valid_pairs(&keys, &locks).len().to_string()

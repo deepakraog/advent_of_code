@@ -1,7 +1,7 @@
 use std::collections::{BinaryHeap, HashMap};
 
-use crate::coord::Coord;
-use crate::grid::Grid;
+use crate::solutions::y2024::helpers::coord::Coord;
+use crate::solutions::y2024::helpers::grid::Grid;
 
 /// Represents the puzzle state and operations.
 struct Puzzle {
