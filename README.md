@@ -147,7 +147,3 @@ If you'd like to contribute:
 - [aoc-cli on GitHub](https://github.com/scarvalhojr/aoc-cli)
 
 Happy coding! 🎉
-
-```
-
-```
