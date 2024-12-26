@@ -25,15 +25,9 @@ pub mod solutions {
         pub mod day23;
         pub mod day24;
         pub mod day25;
+        pub mod helpers;
     }
 }
-
-pub mod coord;
-
-/// elves are helpful
-pub mod elves;
-
-pub mod grid;
 
 use solutions::*;
 
@@ -89,7 +83,7 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (24, 1) => y2024::day24::solve_part1(input),
             (24, 2) => y2024::day24::solve_part2(input),
             (25, 1) => y2024::day25::valid_pairs(input),
-            _ => "Not implemented yet".to_string(),
+            _ => "Invalid option".to_string(),
         },
         _ => "Not implemented yet".to_string(),
     }

@@ -1,6 +1,6 @@
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use crate::solutions::y2024::helpers::coord::Coord;
 
-use crate::coord::Coord;
+use std::collections::{BinaryHeap, HashMap, HashSet};
 
 const ZERO: Coord = Coord { x: 0, y: 0 };
 const EAST: Coord = Coord { x: 1, y: 0 }; // starting direction

@@ -1,7 +1,7 @@
 use core::str;
 use std::ops::{Index, IndexMut};
 
-pub use crate::coord::Coord;
+pub use crate::y2024::helpers::coord::Coord;
 
 #[derive(Debug)]
 pub struct Grid {
