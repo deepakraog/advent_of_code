@@ -90,9 +90,9 @@ fn find_max_twelve_digit_number_v2(line: &str) -> u64 {
         let mut best_idx = start_idx;
         let mut best_digit = digits[start_idx];
         
-        for i in start_idx..end_idx.min(n) {
-            if digits[i] > best_digit {
-                best_digit = digits[i];
+        for (i, &digit) in digits.iter().enumerate().skip(start_idx).take(end_idx.min(n) - start_idx) {
+            if digit > best_digit {
+                best_digit = digit;
                 best_idx = i;
             }
         }

@@ -69,7 +69,7 @@ fn is_invalid_id(id: u64) -> bool {
     let len = id_str.len();
     
     // An invalid ID must have even length (since it's a sequence repeated twice)
-    if len % 2 != 0 {
+    if !len.is_multiple_of(2) {
         return false;
     }
     
@@ -88,7 +88,7 @@ fn is_invalid_id_part2(id: u64) -> bool {
     // An invalid ID must be made of a sequence repeated at least twice
     // Try all possible sequence lengths (divisors of len where we have at least 2 repetitions)
     for seq_len in 1..=len / 2 {
-        if len % seq_len != 0 {
+        if !len.is_multiple_of(seq_len) {
             continue; // Can't divide evenly
         }
         

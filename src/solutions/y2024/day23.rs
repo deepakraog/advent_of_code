@@ -33,9 +33,9 @@ fn count_triangles_with_t(network: &HashMap<String, HashSet<String>>) -> usize {
                 let b = nodes[j];
                 let c = nodes[k];
 
-                if network.get(b).map_or(false, |n| n.contains(a))
-                    && network.get(c).map_or(false, |n| n.contains(a))
-                    && network.get(c).map_or(false, |n| n.contains(b))
+                if network.get(b).is_some_and(|n| n.contains(a))
+                    && network.get(c).is_some_and(|n| n.contains(a))
+                    && network.get(c).is_some_and(|n| n.contains(b))
                     && (a.starts_with('t') || b.starts_with('t') || c.starts_with('t'))
                 {
                     count += 1;
@@ -62,7 +62,7 @@ fn find_largest_clique(network: &HashMap<String, HashSet<String>>) -> Vec<String
                 && clique.iter().all(|clique_node| {
                     network
                         .get(clique_node)
-                        .map_or(false, |n| n.contains(neighbor))
+                        .is_some_and(|n| n.contains(neighbor))
                 })
             {
                 clique.push(neighbor.clone());
