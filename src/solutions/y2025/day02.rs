@@ -1,6 +1,6 @@
 pub fn sum_invalid_ids(input: &str) -> String {
     let mut total = 0u64;
-    
+
     // Parse ranges from input (comma-separated)
     let ranges: Vec<(u64, u64)> = input
         .trim()
@@ -18,7 +18,7 @@ pub fn sum_invalid_ids(input: &str) -> String {
             }
         })
         .collect();
-    
+
     // Check each range
     for (start, end) in ranges {
         for id in start..=end {
@@ -27,13 +27,13 @@ pub fn sum_invalid_ids(input: &str) -> String {
             }
         }
     }
-    
+
     total.to_string()
 }
 
 pub fn sum_invalid_ids_part2(input: &str) -> String {
     let mut total = 0u64;
-    
+
     // Parse ranges from input (comma-separated)
     let ranges: Vec<(u64, u64)> = input
         .trim()
@@ -51,7 +51,7 @@ pub fn sum_invalid_ids_part2(input: &str) -> String {
             }
         })
         .collect();
-    
+
     // Check each range
     for (start, end) in ranges {
         for id in start..=end {
@@ -60,23 +60,23 @@ pub fn sum_invalid_ids_part2(input: &str) -> String {
             }
         }
     }
-    
+
     total.to_string()
 }
 
 fn is_invalid_id(id: u64) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
-    
+
     // An invalid ID must have even length (since it's a sequence repeated twice)
     if !len.is_multiple_of(2) {
         return false;
     }
-    
+
     let half_len = len / 2;
     let first_half = &id_str[..half_len];
     let second_half = &id_str[half_len..];
-    
+
     // Check if the second half equals the first half
     first_half == second_half
 }
@@ -84,22 +84,22 @@ fn is_invalid_id(id: u64) -> bool {
 fn is_invalid_id_part2(id: u64) -> bool {
     let id_str = id.to_string();
     let len = id_str.len();
-    
+
     // An invalid ID must be made of a sequence repeated at least twice
     // Try all possible sequence lengths (divisors of len where we have at least 2 repetitions)
     for seq_len in 1..=len / 2 {
         if !len.is_multiple_of(seq_len) {
             continue; // Can't divide evenly
         }
-        
+
         let num_repetitions = len / seq_len;
         if num_repetitions < 2 {
             continue; // Need at least 2 repetitions
         }
-        
+
         // Get the first sequence
         let first_seq = &id_str[..seq_len];
-        
+
         // Check if all repetitions match
         let mut all_match = true;
         for i in 1..num_repetitions {
@@ -110,12 +110,12 @@ fn is_invalid_id_part2(id: u64) -> bool {
                 break;
             }
         }
-        
+
         if all_match {
             return true;
         }
     }
-    
+
     false
 }
 
@@ -155,4 +155,3 @@ mod tests {
         assert_eq!(sum_invalid_ids_part2(input), "4174379265");
     }
 }
-
