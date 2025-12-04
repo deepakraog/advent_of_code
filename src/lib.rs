@@ -27,6 +27,11 @@ pub mod solutions {
         pub mod day25;
         pub mod helpers;
     }
+    pub mod y2025 {
+        pub mod day01;
+        pub mod day02;
+        pub mod day03;
+    }
 }
 
 use solutions::*;
@@ -83,6 +88,15 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (24, 1) => y2024::day24::solve_part1(input),
             (24, 2) => y2024::day24::solve_part2(input),
             (25, 1) => y2024::day25::valid_pairs(input),
+            _ => "Invalid option".to_string(),
+        },
+        2025 => match (day, part) {
+            (1, 1) => y2025::day01::count_zero_visits(input),
+            (1, 2) => y2025::day01::count_zero_visits_during_rotations(input),
+            (2, 1) => y2025::day02::sum_invalid_ids(input),
+            (2, 2) => y2025::day02::sum_invalid_ids_part2(input),
+            (3, 1) => y2025::day03::sum_max_joltage(input),
+            (3, 2) => y2025::day03::sum_max_joltage_part2(input),
             _ => "Invalid option".to_string(),
         },
         _ => "Not implemented yet".to_string(),
