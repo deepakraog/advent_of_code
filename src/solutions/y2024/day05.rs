@@ -29,7 +29,7 @@ pub fn sum_middle_pages_correctly_ordered(input: &str) -> String {
 
         for (i, &x) in pages.iter().enumerate() {
             for (j, &y) in pages.iter().enumerate() {
-                if i < j && e.get(&x).map_or(false, |deps| deps.contains(&y)) {
+                if i < j && e.get(&x).is_some_and(|deps| deps.contains(&y)) {
                     is_valid = false;
                     break;
                 }
@@ -78,7 +78,7 @@ pub fn sum_middle_pages_after_fixing_order(input: &str) -> String {
 
         for (i, &x) in pages.iter().enumerate() {
             for (j, &y) in pages.iter().enumerate() {
-                if i < j && e.get(&x).map_or(false, |deps| deps.contains(&y)) {
+                if i < j && e.get(&x).is_some_and(|deps| deps.contains(&y)) {
                     is_valid = false;
                     break;
                 }
