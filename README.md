@@ -152,7 +152,7 @@ Progress on 2025 puzzles:
 - ✅ **Day 1**: Secret Entrance (Part 1 & 2) - **
 - ✅ **Day 2**: Gift Shop (Part 1 & 2) - **
 - ✅ **Day 3**: Lobby (Part 1 & 2) - **
-- ⏳ **Day 4**: Coming soon (00:42:10 remaining)
+- ✅ **Day 4**: Printing Department (Part 1 & 2) - **
 - ⏸️ **Days 5-12**: Not yet available
 
 ---
