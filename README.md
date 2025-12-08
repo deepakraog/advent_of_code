@@ -78,6 +78,16 @@ src/
 │       ├── day02.txt    # Puzzle input for Day 2
 │       ├── day03.md     # Puzzle description for Day 3
 │       ├── day03.txt    # Puzzle input for Day 3
+│       ├── day04.md     # Puzzle description for Day 4
+│       ├── day04.txt    # Puzzle input for Day 4
+│       ├── day05.md     # Puzzle description for Day 5
+│       ├── day05.txt    # Puzzle input for Day 5
+│       ├── day06.md     # Puzzle description for Day 6
+│       ├── day06.txt    # Puzzle input for Day 6
+│       ├── day07.md     # Puzzle description for Day 7
+│       ├── day07.txt    # Puzzle input for Day 7
+│       ├── day08.md     # Puzzle description for Day 8
+│       ├── day08.txt    # Puzzle input for Day 8
 │       └── ......
 │
 ├── lib.rs               # Main library file, includes module imports for solutions
@@ -93,6 +103,11 @@ src/
         ├── day01.rs     # Solution implementation for Day 1
         ├── day02.rs     # Solution implementation for Day 2
         ├── day03.rs     # Solution implementation for Day 3
+        ├── day04.rs     # Solution implementation for Day 4
+        ├── day05.rs     # Solution implementation for Day 5
+        ├── day06.rs     # Solution implementation for Day 6
+        ├── day07.rs     # Solution implementation for Day 7
+        ├── day08.rs     # Solution implementation for Day 8
         └── .......
 
 ```
@@ -153,7 +168,11 @@ Progress on 2025 puzzles:
 - ✅ **Day 2**: Gift Shop (Part 1 & 2) - **
 - ✅ **Day 3**: Lobby (Part 1 & 2) - **
 - ✅ **Day 4**: Printing Department (Part 1 & 2) - **
-- ⏸️ **Days 5-12**: Not yet available
+- ✅ **Day 5**: Cafeteria (Part 1 & 2) - **
+- ✅ **Day 6**: Trash Compactor (Part 1 & 2) - **
+- ✅ **Day 7**: Laboratories (Part 1 & 2) - **
+- ✅ **Day 8**: Playground (Part 1 & 2) - **
+- ⏸️ **Days 9-12**: Not yet available
 
 ---
 

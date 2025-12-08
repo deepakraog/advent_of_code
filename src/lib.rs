@@ -32,6 +32,10 @@ pub mod solutions {
         pub mod day02;
         pub mod day03;
         pub mod day04;
+        pub mod day05;
+        pub mod day06;
+        pub mod day07;
+        pub mod day08;
     }
 }
 
@@ -100,6 +104,14 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (3, 2) => y2025::day03::sum_max_joltage_part2(input),
             (4, 1) => y2025::day04::count_accessible_rolls(input),
             (4, 2) => y2025::day04::count_accessible_rolls_part2(input),
+            (5, 1) => y2025::day05::count_fresh_ingredients(input),
+            (5, 2) => y2025::day05::count_fresh_ingredients_part2(input),
+            (6, 1) => y2025::day06::calculate_grand_total(input),
+            (6, 2) => y2025::day06::calculate_grand_total_part2(input),
+            (7, 1) => y2025::day07::count_beam_splits(input),
+            (7, 2) => y2025::day07::count_beam_splits_part2(input),
+            (8, 1) => y2025::day08::multiply_largest_circuits(input),
+            (8, 2) => y2025::day08::multiply_largest_circuits_part2(input),
             _ => "Invalid option".to_string(),
         },
         _ => "Not implemented yet".to_string(),
