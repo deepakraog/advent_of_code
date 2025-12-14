@@ -156,11 +156,17 @@ If you'd like to contribute:
 ## 🎉 📈 Progress Card
 
 ### 2024
-(https://adventofcode.com/2024/leaderboard/private/view/4743704)
-![Solution Results](https://github.com/user-attachments/assets/1d4bef48-1171-4e37-b467-d549a861ceee)
+[Leaderboard](https://adventofcode.com/2024/leaderboard/private/view/4743704)
+![2024 Progress - All 25 Days Complete](aoc-2024-complete.png)
+
+**🎉 All 25 Days Complete! 🎉**
+
+**Total: 25/25 days complete (50/50 stars) ⭐**
 
 ### 2025
-![2025 Progress](https://github.com/user-attachments/assets/21d6ba2d-6515-40c5-9f79-69a09a730397)
+![2025 Progress - All 12 Days Complete](aoc-2025-complete.png)
+
+**🎉 All 12 Days Complete! 🎉**
 
 Progress on 2025 puzzles:
 
@@ -172,7 +178,14 @@ Progress on 2025 puzzles:
 - ✅ **Day 6**: Trash Compactor (Part 1 & 2) - **
 - ✅ **Day 7**: Laboratories (Part 1 & 2) - **
 - ✅ **Day 8**: Playground (Part 1 & 2) - **
-- ⏸️ **Days 9-12**: Not yet available
+- ✅ **Day 9**: Movie Theater (Part 1 & 2) - **
+- ✅ **Day 10**: Factory (Part 1 & 2) - **
+- ✅ **Day 11**: Reactor (Part 1 & 2) - **
+- ✅ **Day 12**: Christmas Tree Farm (Part 1 & 2) - **
+
+**Total: 12/12 days complete (24/24 stars) ⭐**
+
+*Note: Add the screenshot files `aoc-2024-complete.png` and `aoc-2025-complete.png` to the repository root to display the completion images.*
 
 ---
 

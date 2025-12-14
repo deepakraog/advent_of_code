@@ -79,13 +79,7 @@ impl Puzzle {
                     let time = match (self.from_start.get(cheat_start), self.to_end.get(cheat_end))
                     {
                         (Some(&start_dist), Some(&end_dist)) => start_dist + cheat_dist + end_dist,
-                        _ => {
-                            println!(
-                                "Missing distances for {:?} or {:?}!",
-                                cheat_start, cheat_end
-                            );
-                            continue;
-                        }
+                        _ => continue,
                     };
 
                     if time + min_gain <= self.boring {
