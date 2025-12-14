@@ -36,6 +36,10 @@ pub mod solutions {
         pub mod day06;
         pub mod day07;
         pub mod day08;
+        pub mod day09;
+        pub mod day10;
+        pub mod day11;
+        pub mod day12;
     }
 }
 
@@ -112,6 +116,14 @@ pub fn run_solution((year, day, part): (u32, u32, u32), input: &str) -> String {
             (7, 2) => y2025::day07::count_beam_splits_part2(input),
             (8, 1) => y2025::day08::multiply_largest_circuits(input),
             (8, 2) => y2025::day08::multiply_largest_circuits_part2(input),
+            (9, 1) => y2025::day09::find_largest_rectangle(input),
+            (9, 2) => y2025::day09::find_largest_rectangle_part2(input),
+            (10, 1) => y2025::day10::sum_minimum_button_presses(input),
+            (10, 2) => y2025::day10::sum_minimum_button_presses_part2(input),
+            (11, 1) => y2025::day11::count_paths_to_out(input),
+            (11, 2) => y2025::day11::count_paths_to_out_part2(input),
+            (12, 1) => y2025::day12::count_fittable_regions(input),
+            (12, 2) => y2025::day12::count_fittable_regions_part2(input),
             _ => "Invalid option".to_string(),
         },
         _ => "Not implemented yet".to_string(),

@@ -42,7 +42,6 @@ fn solve(input: &str, part2: bool) -> i64 {
             }
         } else {
             // Ignore invalid characters or input
-            eprintln!("Warning: Skipping invalid character '{}'", c);
             continue;
         }
     }
